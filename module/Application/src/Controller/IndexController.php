@@ -1,7 +1,7 @@
 <?php
 /**
  * @Synopsis : Ce script est le controlleur IndexController
- * il permet de récuperer une nouvelle liste de cartes et
+ * il permet de rÃ©cuperer une nouvelle liste de cartes et
  * de valider la solution
  * @copyright Copyright (c) 2018-2018 Ositel Groupe
  * @license   
@@ -19,7 +19,7 @@ use Zend\Session\Container;
 class IndexController extends AbstractActionController
 {
     /*
-     * Cette méthode est l'action index du controlleur
+     * Cette mÃ©thode est l'action index du controlleur
      */
     public function indexAction()
     {
@@ -29,33 +29,33 @@ class IndexController extends AbstractActionController
     }
     
     /*
-     * Cette méthode est l'action getCardsAction du controlleur
-     * elle permet de récuper une nouvelle liste des cartes
+     * Cette mÃ©thode est l'action getCardsAction du controlleur
+     * elle permet de rÃ©cuper une nouvelle liste des cartes
      * on appellant le webservice distant
      */
     
     public function getCardsAction()
     {
         
-        // on instancie un nouvelle objet Session
+        // on instancie un nouveau objet Session
         $session = new Container('base');
         
         // L'url du webservice
         $webServicUrl = "https://recrutement.local-trust.com/test/cards/57187b7c975adeb8520a283c";
 
-        // On crée un objet http client
+        // On crÃ©e un objet http client
         $client = new Client($webServicUrl, array(
                             'sslverifypeer' => null,
                             'sslallowselfsigned' => null,
                         ));
         
-        // On envoie la requête
+        // On envoie la requÃªte
         $response = $client->send();
 
-        // on décode le corp du résultat retournée
+        // On dÃ©code le corp du rÃ©sultat retournÃ©e
         $result = json_decode($response->getBody(), true);
         
-        // Ce qui nous interesse en premier est l'objet data
+        // Ce qui nous interesse en premier lieu est l'objet data
         $data = $result["data"];
         
         // puis, l'id de l'exercice
@@ -64,45 +64,45 @@ class IndexController extends AbstractActionController
         // on le stock dans la session 
         $session->offsetSet('exerciceId', $exerciceId);
         
-        // puis, on récup_re l'objet qui contient la lsite des cartes
+        // puis, on rÃ©cupÃ¨re l'objet qui contient la lsite des cartes
         $cards = $data["cards"];
         
-        // ce tableau acceuillera les cartes après le tri
+        // ce tableau accueillera les cartes aprÃ¨s le tri
         $sortedCards = array();
         
-        // on récupère l'ordre des catégorie
+        // on rÃ©cupÃ¨re l'ordre des catÃ©gories
         $categoryOrder = $data["categoryOrder"];
 
         // on le stock aussi dans la session
         $session->offsetSet('categoryOrder', $categoryOrder);
 
-        // de même pour l'ordre des valeurs
+        // de mÃªme pour l'ordre des valeurs
         $valueOrder = $data["valueOrder"];
         
-        // et on le met aussi dans la session
+        // et on le met aussi dans la Session
         $session->offsetSet('valueOrder', $valueOrder);
         
-        // ensuite, on boucle sur la liste des ordres par catégorie
+        // ensuite, on mouline sur la liste des ordres par catÃ©gorie
         foreach ($categoryOrder as $category) {
             
             // puis, par valeur
             foreach ($valueOrder as $order) {
                 
-                // ensuite sur les cartes retournées
+                // ensuite sur les cartes retournÃ©es
                 foreach ($cards as $card) {
                     
-                    // la catégorie de la carte en cours
+                    // la catÃ©gorie de la carte en cours
                     $cardCategory = $card["category"];
                     
-                    // et la valeur de la cate en cours
+                    // et la valeur de la carte en cours
                     $cardValue = $card["value"];
                     
-                    // si, les deux matchent avec l'ordre de la cétégorie
+                    // si, les deux matchent avec l'ordre de la catÃ©gorie
                     // en cours est l'ordre de la valeur en cours
                     if($cardCategory == $category && $cardValue == $order)
                     {
                         
-                        // alors, on les stock dans le tableau du résultat final
+                        // alors, on les stock dans le tableau du rÃ©sultat final
                         $sortedCards[] = array("category" => "$cardCategory", "value" => "$cardValue");
                         
                     }
@@ -112,18 +112,18 @@ class IndexController extends AbstractActionController
         
         }
         
-        // on pousse les cartes triées dans un tableau de session
-        // pour une utilisation ultérieure
+        // on pousse les cartes triÃ©es dans un tableau de Session
+        // pour une utilisation ultÃ©rieure
         $session->offsetSet('cards', $sortedCards);
 
-        // on récupère l'objet response
+        // on rÃ©cupÃ¨re l'objet Response
         $response = $this->getResponse();
         
-        // pour y éffectuer quelques modifications
+        // pour y Ã©ffectuer quelques modifications
         // avant l'envoie
         $response->getHeaders()->addHeaderLine( 'Content-Type', 'application/json' );
         
-        // on y stoque le résultat final encodé  en json
+        // on y stock le rÃ©sultat final encodÃ©  en json
         $response->setContent(json_encode($sortedCards));
         
         // et on le retourne
@@ -135,31 +135,31 @@ class IndexController extends AbstractActionController
 
     
     /*
-     * Cette méthode est l'action checkSolutionAction du controlleur
-     * elle permet de checker la liste des cartes triées selon l'orde
-     * défini par le webservice on l'appellant avec des paramètres
-     * aditionnels
+     * Cette mÃ©thode est l'action checkSolutionAction du controlleur
+     * elle permet de checker la liste des cartes triÃ©es selon l'ordre
+     * dÃ©fini par le webservice on l'appellant avec des paramÃ¨tres
+     * additionnels
      */
     
     public function checkSolutionAction()
     {
         
-        // on instancie un nouvelle objet Session        
+        // on instancie un nouveau objet Session        
         $session = new Container('base');
         
-        // on récupère l'exercieId de la session
+        // on rÃ©cupÃ¨re l'exercieId de la Session
         $exerciceId = $session->offsetGet('exerciceId');
 
-        // même chose pour la liste des cartes triées
+        // mÃªme chose pour la liste des cartes triÃ©es
         $cards = $session->offsetGet('cards');
         
-        // la liste des ordes par catégorie
+        // la liste des ordes par catÃ©gorie
         $categoryOrder = $session->offsetGet('categoryOrder');
         
         // et les ordres par valeur
         $valueOrder = $session->offsetGet('valueOrder');
 
-        // ceci est le contenu du body qui sera envoyé en POST au webservice
+        // ceci est le contenu du body qui sera envoyÃ© en POST au webservice
         $content = array("cards" => $cards, "categoryOrder" => $categoryOrder, "valueOrder" => $valueOrder);
         
         // l'url du web sevice check solution
@@ -168,8 +168,8 @@ class IndexController extends AbstractActionController
         // on instancie un objet http client
         $client = new Client($webServicUrl);
         
-        // on déclaré que le type de contenu est json
-        // la vérification ssl sur false
+        // on dÃ©clare que le type de contenu est Json
+        // la vÃ©rification ssl sur false
         $client
             ->setHeaders([
                 'Content-Type' => 'application/json',
@@ -183,14 +183,16 @@ class IndexController extends AbstractActionController
         // et on envoie le tout
         $result = $client->send();
         
-        // si la requête a été envoyée avec succès, et que le code retourné est 200
+        // si la requÃªte a Ã©tÃ© envoyÃ©e avec succÃ¨s, et que le status code retournÃ© est 200
         if ($result->isSuccess() && $result->getStatusCode() == 200) {
             
-            $ajaxOutput = 'Réponse correcte, status code : '.$result->getStatusCode();
+            // On dit que la rÃ©ponse est correcte et en affiche le status code retournÃ©
+            $ajaxOutput = 'RÃ©ponse correcte, status code : '.$result->getStatusCode();
             
         } else {// Sinon,
             
-            $ajaxOutput = 'Réponse incorrecte, status code : '.$result->getStatusCode();
+            // On dit que la rÃ©ponse est incorrecte et en affiche la raison retournÃ©e
+            $ajaxOutput = 'RÃ©ponse incorrecte, status code : '.$result->getStatusCode();
             
             $ajaxOutput .= '<br />Raison : '.$result->getReasonPhrase();
             
@@ -198,14 +200,14 @@ class IndexController extends AbstractActionController
             
         }
 
-        // on récupère l'objet response        
+        // on rÃ©cupÃ¨re l'objet Response        
         $response = $this->getResponse();
         
-        // pour y éffectuer quelques modifications
+        // pour y Ã©ffectuer quelques modifications
         // avant l'envoie
         $response->getHeaders()->addHeaderLine( 'Content-Type', 'text/html' );
         
-        // on y stoque le résultat final encodé  en json        
+        // on y stock le rÃ©sultat final encodÃ©  en JSon        
         $response->setContent(utf8_encode($ajaxOutput));
         
         // et on retourne le tout
